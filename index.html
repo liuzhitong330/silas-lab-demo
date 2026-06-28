@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exploratory Analyses Inspired by Silas Lab Publications &mdash; Cathy Liu</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem;
+         line-height: 1.65; color: #222; background: #fff; }
+  .byline { font-family: system-ui, sans-serif; font-size: .85rem; color: #777; margin-top: -.3rem; }
+  .applicant { font-family: system-ui, sans-serif; font-size: .8rem; color: #999; text-align: right; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.65rem; margin-bottom: .2rem; line-height: 1.3; }
+  h2 { font-size: 1.2rem; margin-top: 2.8rem; border-bottom: 1px solid #eee; padding-bottom: .4rem; }
+  h3 { font-family: system-ui, sans-serif; font-size: .95rem; color: #444; margin-top: 1.6rem; }
+  h4 { font-family: system-ui, sans-serif; font-size: .92rem; color: #333; margin: 1.2rem 0 .4rem; }
+  p { margin: .7rem 0; }
+  a { color: #2255aa; }
+  .callout { background: #f7f7f5; border-left: 3px solid #c03030; padding: 1rem 1.2rem; margin: 1rem 0;
+              font-size: .92rem; }
+  .callout h4:first-child { margin-top: 0; }
+  .callout ul { padding-left: 1.2rem; }
+  .callout hr { border: none; border-top: 1px solid #e5e5e0; margin: 1rem 0; }
+  .turn { margin: .9rem 0; padding: .9rem 1.1rem; border-radius: 4px; font-size: .92rem; }
+  .turn.user { background: #eef3fa; border-left: 3px solid #5a87c0; }
+  .turn.assistant { background: #f7f7f5; border-left: 3px solid #c03030; }
+  .turn-label { font-family: system-ui, sans-serif; font-size: .72rem; text-transform: uppercase;
+                 letter-spacing: .05em; color: #888; margin-bottom: .4rem; }
+  .code-wrap { overflow-x: auto; margin: 1rem 0; }
+  pre.code-block { white-space: pre; background: #f8f8f8; padding: 1rem; font-size: .8rem;
+                     border-left: 3px solid #ddd; font-family: 'SF Mono', Menlo, Consolas, monospace; }
+  .kw { color: #a626a4; } .str { color: #50a14f; } .com { color: #999; font-style: italic; }
+  .fn { color: #4078f2; }
+  .fig-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.2rem 0; }
+  .fig-row figure { flex: 1; min-width: 260px; margin: 0; }
+  .fig-row img { width: 100%; display: block; }
+  figcaption { font-family: system-ui, sans-serif; font-size: .78rem; color: #888; margin-top: .4rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; margin: 1rem 0; }
+  td, th { padding: .45rem .7rem; border-bottom: 1px solid #eee; text-align: left; }
+  th { font-family: system-ui, sans-serif; font-size: .78rem; text-transform: uppercase; color: #888; }
+  .up { color: #c03030; font-weight: bold; } .dn { color: #2255aa; font-weight: bold; }
+  .contrib-list { padding-left: 1.2rem; }
+  .contrib-list li { margin-bottom: .6rem; }
+  .methods-note { font-size: .85rem; color: #777; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+
+<div class="applicant">Cathy Liu &middot; cathyliu014@gmail.com</div>
+
+<h1>Exploratory Analyses Inspired by Silas Lab Publications</h1>
+<div class="byline">Cathy Liu &middot; June 2026</div>
+
+<h2>Motivation</h2>
+<p>The Silas Lab studies the phage-host immune arms race through the lens of accessory genes (AGs) &mdash;
+small, fast-evolving, non-essential phage genes that the lab treats as a systematic readout of which host
+defenses matter most in real, wild bacterial strains rather than lab-adapted ones. What drew me in is the
+lab's <a href="https://doi.org/10.1038/s41586-026-10440-8" target="_blank">2026 <em>Nature</em> paper</a>
+showing that an anti-CRISPR protein doesn't just block Cas12 protein activity &mdash; it triggers
+translation-dependent degradation of <em>cas12</em> mRNA itself. Most anti-CRISPRs studied to date work
+at the protein level (steric blocking, allosteric inhibition); finding one that reaches back to disable
+the transcript is a different class of mechanism, and it immediately raises the question of how common
+transcript-level anti-defense is across the AG repertoire.</p>
+<p>I'm also struck by the lab's "lose-lose bind" hypothesis: that programmed cell death (PCD) / abortive
+infection systems may have evolved specifically to sense the AGs that suppress host immunity, so that a
+phage either loses a useful immune-suppressive function or risks triggering host suicide. That's a sharp,
+falsifiable idea, and the lab's transposon-suppressor "layer-peeling" approach for wild strains seems like
+exactly the right tool to test it. Below are two exploratory analyses I ran with Claude as a thinking
+partner on these questions, plus a small mock screen analysis in the lab's own idiom (pooled AG screens,
+not the RNA-seq workflows I usually default to).</p>
+
+<h2>Experiment 1: Research Gap Identification</h2>
+<p>I gave Claude (claude-opus-4-8) a corpus summarizing five recent Silas Lab papers plus the lab's research
+statement, and asked it to identify specific, mechanistic open questions &mdash; not generic ones &mdash;
+that the AG screening platform is uniquely positioned to answer, along with a candidate experiment for
+each. Output below is verbatim (lightly truncated for length).</p>
+<div class="callout">
+<h4>1. Is “guarding” of immune inhibitors a general principle, and what is the molecular sensing mechanism?</h4>
+<p><strong>The gap:</strong> Paper 4 shows that PCD/Abi systems sense phage immune inhibitors (anti-CRISPRs, anti-restriction proteins) and trigger suicide. But the central question is <em>how</em> — do guard systems detect the inhibitor protein directly (binding), or do they detect the <em>consequence</em> of inhibition (e.g., the now-unbound, “freed” defense complex, a stalled R-M enzyme, or restored DNA accessibility)? These are mechanistically opposite models with different evolutionary implications. The “effector-triggered immunity” (ETI) analogy to plant NLR guards predicts indirect sensing of the perturbed host protein, not the phage protein.</p>
+<p><strong>Experiment:</strong> Cross the AG-expression PCD screen with the AP-MS workflow. Express a guarded anti-defense AG, then ask whether the PCD sensor co-purifies with (a) the AG itself, (b) the AG&#x27;s host target (the defense protein it inhibits), or (c) a ternary complex. Then do a decoupling test: express AG variants that retain target binding but lose inhibitory activity (separation-of-function mutants) and ask if PCD still fires. If PCD requires <em>functional</em> inhibition, sensing is consequence-based (true ETI); if binding alone suffices, it&#x27;s direct.</p>
+<h4>2. Does the predicted “lose-lose bind” actually constrain AG evolution, and can it be measured?</h4>
+<p><strong>The gap:</strong> The lab&#x27;s central hypothesis — that AG loss-of-function is the “intended” outcome, trapping phages between losing immune-suppressive function and triggering Abi — is stated but not yet quantitatively demonstrated. Is there a measurable fitness landscape where AG sequence space is “pinched” between two opposing selective pressures?</p>
+<p><strong>Experiment:</strong> Deep mutational scanning of a single guarded anti-defense AG, scored in parallel across two screen formats: (a) phage-dependent anti-defense screen (selects for retained inhibitory function) and (b) phage-independent PCD screen across wild strains carrying the guard (selects against PCD activation). Overlay the two fitness maps. The hypothesis predicts an anticorrelated ridge — residues that improve anti-defense activity also increase PCD triggering — with very few “escape” variants that satisfy both. Finding (or failing to find) such variants directly tests whether the bind is truly inescapable.</p>
+<h4>3. What fraction of “accessory genes” are broad-spectrum anti-defense factors targeting conserved host nodes, and what are those nodes?</h4>
+<p><strong>The gap:</strong> Paper 3 hints at broad-spectrum anti-defense, and the research statement explicitly calls out broad-spectrum phenotypes. But the field lacks a systematic map of whether AGs hit <em>many narrow</em> targets or <em>few conserved hubs</em> (e.g., a shared signaling node, a common nuclease cofactor, membrane potential, NAD+ pools shared by CBASS/Thoeris/Pycsar). The mRNA-degradation mechanism in Paper 1 suggests some AGs act on conserved central machinery (translation/RNA turnover) rather than on one defense protein.</p>
+<p><strong>Experiment:</strong> Run the phage-dependent anti-defense screen across a panel of strains engineered to carry <em>single, defined</em> defense systems (CRISPR-Cas12, specific R-M, CBASS, Thoeris, Gabija, etc.). Score each AG&#x27;s anti-defense spectrum. AGs scoring against unrelated systems flag candidate hub-targeters. Follow with AP-MS to find the shared host target. A specific prediction: some broad anti-defense AGs will converge on a shared metabolic/signaling cofactor (e.g., a nucleotide-sensing or NAD+/ATP node) rather than each defense protein individually.</p>
+<h4>4. Does the phage nucleus&#x27; import-licensing system create a parallel, compartment-level arms race — and can AGs override licensing?</h4>
+<p><strong>The gap:</strong> Paper 5 defines multi-interface licensing for protein import into the phage nucleus. The unaddressed question: do bacterial defenses (or competing phages/satellites) exploit this by smuggling inhibitors <em>into</em> the nucleus, and conversely, which AGs are themselves nucleus-imported anti-defense factors that the licensing system must admit? Whether import-licensing is itself a guarded/sensed process is unknown.</p>
+<p><strong>Experiment:</strong> Use the AG-expression platform with nucleus-localization readouts (split-fluorophore or proximity labeling inside the compartment) to screen which AGs are imported vs. excluded. Then test whether forcing import of normally-excluded host defense effectors (by appending a licensing interface motif identified in Paper 5) breaks nucleus-mediated protection. This tests whether the licensing interfaces are a druggable/exploitable bottleneck and whether any natural AG already acts as a “licensing key.”</p>
+</div>
+
+<h2>Experiment 2: Iterative Hypothesis Refinement</h2>
+<p>I picked the single most surprising finding in the lab's recent work &mdash; the translation-dependent
+<em>cas12</em> mRNA decay mechanism &mdash; and ran a 3-turn refinement: an initial mechanistic hypothesis,
+a deliberate confound (is this just nonspecific overexpression stress?), and a request for one falsifiable
+prediction that could distinguish the two models using tools already in the lab's screening framework.</p>
+
+<div class="turn user"><div class="turn-label">Turn 1 &middot; Prompt</div><p>The Silas Lab (Marino et al., <em>Nature</em> 2026) found that a phage-encoded anti-CRISPR protein triggers translation-dependent degradation of cas12 mRNA in the bacterial host &mdash; surprising, since most known anti-CRISPRs act by directly binding and sterically blocking the Cas protein itself, not by destroying its mRNA. Propose an initial mechanistic hypothesis: 2&ndash;3 concrete molecular mechanisms for how an anti-CRISPR could trigger translation-dependent decay of its own target's transcript.</p></div>
+<div class="turn assistant"><div class="turn-label">Claude</div>
+<h4>Hypothesis 1: Ribosome Stalling → Co-translational mRNA Cleavage</h4>
+<p>The anti-CRISPR (Acr) protein binds the nascent Cas12 polypeptide as it emerges from the ribosome, or binds a specific sequence/structure in the cas12 mRNA, causing the translating ribosome to stall. Stalled ribosomes are a canonical trigger for mRNA surveillance pathways—the Acr could recruit or activate an endogenous host endonuclease (e.g., an RNase that recognizes collided ribosomes), cleaving the mRNA in the unprotected region. This explains the translation dependence: no active translation, no stalling, no cleavage.</p>
+<h4>Hypothesis 2: Acr Is (or Recruits) a Ribosome-Associated Endoribonuclease</h4>
+<p>The Acr functions like a toxin-antitoxin-style mRNA interferase (e.g., MazF/RelE family), but with specificity conferred by association with the translating ribosome on cas12 transcripts. By docking at the ribosomal A-site or near the exit channel specifically during Cas12 translation, it cleaves the mRNA in a codon-dependent manner. Translation is required because the enzyme only accesses/cuts mRNA threaded through an actively elongating ribosome.</p>
+<h4>Hypothesis 3: Nascent-Chain-Templated Destabilization</h4>
+<p>The Acr recognizes a co-translationally folded epitope on the partially synthesized Cas12 protein, then bridges that nascent chain to a host RNA degradation machine (e.g., recruiting RNase E or the degradosome to the polysome). This couples target-protein identity to mRNA fate—ensuring specificity for cas12 over other transcripts—and inherently requires translation because the recognition signal is the emerging polypeptide itself.</p>
+<hr>
+<p><strong>Key testable prediction shared across all three:</strong> Blocking translation initiation/elongation (or mutating codons without changing the protein) should uncouple Acr expression from mRNA decay, distinguishing mRNA-sequence recognition (H2) from nascent-peptide recognition (H1/H3).</p>
+</div>
+
+<div class="turn user"><div class="turn-label">Turn 2 &middot; Pushback</div><p>That's a reasonable starting point, but consider a confound: cas12 mRNA degradation could simply be a generic consequence of ribosome stalling or collision whenever a phage protein is overexpressed during infection &mdash; a nonspecific stress response, not a mechanism specifically evolved to target cas12 transcripts. How would you distinguish &ldquo;specific, evolved anti-CRISPR-driven cas12 decay&rdquo; from &ldquo;nonspecific stress-induced decay that happens to affect cas12&rdquo;? What experiment rules out the confound?</p></div>
+<div class="turn assistant"><div class="turn-label">Claude</div>
+<p>The core question is: <strong>does the Acr selectively target cas12, or is cas12 just collateral damage in a global translational stress response?</strong> Here&#x27;s how I&#x27;d dissect it.</p>
+<h4>1. Transcriptome-Wide Specificity (the central control)</h4>
+<p>Run RNA-seq (or directly measure mRNA half-lives via rifampicin chase / metabolic labeling) across <strong>all host and phage transcripts</strong> upon Acr expression.</p>
+<ul>
+<li><strong>Specific model predicts:</strong> cas12 mRNA decay is sharply selective—cas12 half-life drops dramatically while the bulk transcriptome (including other highly-translated, equally abundant genes) is largely unaffected.</li>
+<li><strong>Nonspecific stress predicts:</strong> cas12 falls within a broad cohort of destabilized transcripts, tracking with translation rate/abundance rather than being an outlier.</li>
+</ul>
+<p>A volcano plot where cas12 is a lone extreme outlier is the cleanest single piece of evidence.</p>
+<h4>2. Decouple “high-level phage protein expression” from “Acr identity”</h4>
+<p>This directly attacks the confound that <em>any</em> overexpressed phage protein causes the effect.</p>
+<ul>
+<li><strong>Catalytically/functionally dead Acr mutant</strong> expressed at identical levels: if cas12 decay disappears but the protein is still abundant, the effect requires Acr <em>function</em>, not just protein burden.</li>
+<li><strong>Unrelated phage protein (or non-cognate Acr)</strong> expressed at matched levels: should NOT degrade cas12 if the effect is specific.</li>
+<li><strong>Dose-response:</strong> specific mechanisms often saturate at low/physiological Acr levels; nonspecific stalling stress scales with overexpression. Test whether decay occurs at native infection-level Acr concentrations.</li>
+</ul>
+<h4>3. The decisive “reporter swap” experiment</h4>
+<p>Move the putative <em>cis</em>-determinant to test whether <strong>the cas12 sequence is the target</strong>, not the cas12 context.</p>
+<ul>
+<li>Fuse the cas12 <strong>5′UTR + coding sequence (or a defined fragment) to a heterologous reporter</strong> (e.g., GFP). If this reporter is now destabilized in an Acr-dependent way, specificity lives in the cas12 transcript/nascent chain.</li>
+<li>Conversely, place an <strong>unrelated gene under cas12&#x27;s promoter/translation signals</strong>: if it is NOT degraded, the effect isn&#x27;t a generic property of being highly translated from that locus.</li>
+<li><strong>Synonymous-recoding test:</strong> recode cas12 to alter mRNA sequence while preserving the Cas12 protein.</li>
+</ul>
+</div>
+
+<div class="turn user"><div class="turn-label">Turn 3 &middot; Mechanistic prediction</div><p>Good &mdash; now give one specific, falsifiable mechanistic prediction that follows from the &ldquo;specific, evolved&rdquo; model but <em>not</em> from the nonspecific stress model, framed so it could be tested with ribosome profiling or RNA-seq in the lab's existing wild-strain screening framework.</p></div>
+<div class="turn assistant"><div class="turn-label">Claude</div>
+<h4>The prediction</h4>
+<p>Under the <strong>specific, evolved model</strong>, the Acr recognizes a discrete molecular feature of the cas12 transcript (a sequence/structure element or a particular nascent-peptide motif). This means ribosomes should stall — and mRNA cleavage should initiate — at a <strong>single, defined, reproducible position within the cas12 ORF</strong>, the same position across genetic backgrounds.</p>
+<p>Under the <strong>nonspecific stress model</strong>, stalling/decay is driven by global translational burden, so ribosome occupancy and 5′ decay intermediates should be <strong>distributed broadly</strong> (proportional to translation density across many transcripts) with <strong>no privileged internal cas12 site</strong>.</p>
+<h4>The concrete signature to look for</h4>
+<p>Run ribosome profiling (and parallel 5′P-end RNA-seq to map decay intermediates) on Acr-expressing cells:</p>
+<ul>
+<li><strong>Specific model predicts:</strong> a sharp, localized <strong>ribosome footprint peak at a fixed codon</strong> within cas12, coincident with a <strong>discrete 5′-monophosphate cleavage end</strong> just downstream — i.e., a single dominant stall/cut site, not a gradient.</li>
+<li><strong>Nonspecific model predicts:</strong> elevated but <strong>diffuse</strong> ribosome density and decay ends spread across cas12 and many other transcripts, with peak heights scaling with each gene&#x27;s translation rate.</li>
+</ul>
+<h4>Why this fits the wild-strain screening framework</h4>
+<p>Profile the <strong>panel of wild phage/host strains already in hand</strong>, sorting them by whether they encode a functional Acr:</p>
+<ul>
+<li><strong>Specific/evolved model predicts conservation:</strong> Acr⁺ strains converge on the <strong>same internal cas12 stall/cleavage coordinate</strong>, and that coordinate maps to a <strong>phylogenetically conserved cas12 sequence element</strong> — exactly what you&#x27;d expect from a co-evolved targeting signal.</li>
+<li><strong>Falsification:</strong> if the stall/cleavage position is <strong>variable across strains</strong>, scales with cas12 expression level, or is indistinguishable from the genome-wide stalling distribution, the specific model is rejected in favor of nonspecific stress.</li>
+</ul>
+<p><strong>One-line testable statement:</strong> <em>Across Acr⁺ wild strains, cas12 decay initiates at a single conserved internal codon (a defined ribosome stall site), whereas the nonspecific model predicts only diffuse, expression-scaled stalling with no privileged cas12 position.</em></p>
+</div>
+
+<h2>Mini Analysis: Pooled AG Screen Analysis (Tn-seq / count-based fitness)</h2>
+<p>To mirror the lab's actual experimental idiom &mdash; pooled screens across many wild bacterial strains,
+not single-strain RNA-seq &mdash; I mocked up a count-based AG fitness screen: each AG in a pooled library
+is scored by its log2 fold-change in phage-infectivity rescue (resistant strain becomes susceptible when
+the AG is expressed) versus its enrichment as a PCD trigger (susceptible strain dies when the AG is
+expressed, phage-independent). Synthetic counts, seeded for reproducibility.</p>
+
+<h3>R: count-based fitness scoring (edgeR, same framework used for Tn-seq/CRISPR screens)</h3>
+<div class="code-wrap"><pre class="code-block"><span class="kw">library</span>(edgeR)
+<span class="kw">library</span>(tidyverse)
+
+<span class="com"># counts: AGs x {screen replicates x condition}, e.g. AG library in
+# resistant strain +/- phage, and PCD screen in susceptible strain alone</span>
+counts <- <span class="fn">read.delim</span>(<span class="str">"ag_screen_counts.tsv"</span>, row.names = <span class="str">1</span>)
+design <- <span class="fn">model.matrix</span>(~condition, data = sample_info)
+
+dge <- <span class="fn">DGEList</span>(counts = counts, group = sample_info$condition)
+dge <- <span class="fn">calcNormFactors</span>(dge)
+dge <- <span class="fn">estimateDisp</span>(dge, design)
+
+fit <- <span class="fn">glmQLFit</span>(dge, design)
+qlf <- <span class="fn">glmQLFTest</span>(fit, coef = <span class="str">"conditionphage_selected"</span>)
+res <- <span class="fn">topTags</span>(qlf, n = <span class="kw">Inf</span>)$table
+
+<span class="com"># anti-defense AGs: positive logFC (rescue infectivity under phage selection)</span>
+<span class="com"># PCD-trigger AGs: negative logFC (depleted/lethal without phage, in PCD screen)</span>
+anti_defense <- res %>% <span class="fn">filter</span>(logFC > <span class="str">1</span>, FDR < <span class="str">0.05</span>)
+pcd_triggers <- res %>% <span class="fn">filter</span>(logFC < <span class="str">-1</span>, FDR < <span class="str">0.05</span>)</pre></div>
+
+<h3>Python: parallel screen ingestion across wild strain panel</h3>
+<div class="code-wrap"><pre class="code-block"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> scipy <span class="kw">import</span> stats
+
+<span class="com"># one count table per wild strain; AGs as rows, replicate timepoints as columns</span>
+strains = [<span class="str">"strain_01"</span>, <span class="str">"strain_02"</span>, <span class="str">"strain_03"</span>]  <span class="com"># ... up to n=125 wild isolates</span>
+
+<span class="kw">def</span> <span class="fn">fitness_score</span>(counts_t0, counts_tf):
+    <span class="com"># log2 enrichment of each AG relative to library-wide median</span>
+    lfc = np.log2((counts_tf + <span class="str">1</span>) / (counts_t0 + <span class="str">1</span>))
+    <span class="kw">return</span> lfc - np.median(lfc)
+
+screen_results = {}
+<span class="kw">for</span> strain <span class="kw">in</span> strains:
+    t0 = pd.<span class="fn">read_csv</span>(<span class="fn">f</span><span class="str">"{strain}_t0_counts.csv"</span>, index_col=<span class="str">0</span>)
+    tf = pd.<span class="fn">read_csv</span>(<span class="fn">f</span><span class="str">"{strain}_tf_counts.csv"</span>, index_col=<span class="str">0</span>)
+    screen_results[strain] = <span class="fn">fitness_score</span>(t0[<span class="str">"count"</span>], tf[<span class="str">"count"</span>])
+
+<span class="com"># strains cluster by defense repertoire richness (PCA below) before AG analysis</span>
+fitness_df = pd.<span class="fn">DataFrame</span>(screen_results)</pre></div>
+
+<div class="fig-row">
+  <figure>
+    <img src="pca.svg" alt="PCA of wild bacterial strains by defense repertoire">
+    <figcaption>PCA of 125 wild bacterial strains by anti-virus defense repertoire (CRISPR, R-M, CBASS,
+    PCD/Abi system content). Phage-resistant strains (red) carry redundant, overlapping defenses; the
+    lab's layer-peeling transposon approach is designed to deconvolve exactly this redundancy.</figcaption>
+  </figure>
+  <figure>
+    <img src="volcano.svg" alt="Volcano plot of pooled AG screen fitness">
+    <figcaption>Mock pooled AG screen: log2 fold-change in phage-infectivity rescue (x) vs. significance
+    (y). Anti-defense AGs (red, right) rescue infectivity in resistant strains; PCD-trigger AGs (blue, left)
+    are depleted/lethal in the phage-independent screen &mdash; the two screen arms the lab runs in parallel.</figcaption>
+  </figure>
+</div>
+
+<h3>Representative AG hits</h3>
+<table>
+<tr><th>AG ID</th><th>log2FC</th><th>FDR</th><th>Screen / phenotype</th></tr>
+<tr><td>AcrIF7-like</td><td class="up">+6.4</td><td>2.1e-19</td><td>Anti-CRISPR, narrow-spectrum</td></tr>
+<tr><td>Ocr-like</td><td class="up">+4.7</td><td>8.4e-14</td><td>Anti-R-M, narrow-spectrum</td></tr>
+<tr><td>CBASS-evasion AG</td><td class="up">+3.1</td><td>3.0e-9</td><td>Anti-CBASS, narrow-spectrum</td></tr>
+<tr><td>Broad-spectrum AG-114</td><td class="up">+2.0</td><td>6.2e-6</td><td>Anti-defense across &ge;3 systems</td></tr>
+<tr><td>Thoeris-evasion AG</td><td class="up">+1.6</td><td>4.1e-4</td><td>Anti-Thoeris, narrow-spectrum</td></tr>
+<tr><td>PCD-trigger AG-22</td><td class="dn">&minus;4.2</td><td>1.5e-11</td><td>Lethal in phage-independent screen</td></tr>
+<tr><td>PCD-trigger AG-58</td><td class="dn">&minus;2.6</td><td>9.7e-6</td><td>Lethal in phage-independent screen</td></tr>
+</table>
+
+<h2>Why This Matters</h2>
+<ul class="contrib-list">
+<li><strong>Wild-strain context is the whole point.</strong> The defenses the lab cares about are often
+masked by redundancy in lab strains; their layer-peeling transposon screens and parallel wild-strain
+panels are exactly the right scale of data for a bioinformatics specialist who can build the pipelines
+to track AG hits across dozens to hundreds of strains simultaneously.</li>
+<li><strong>The lose-lose bind hypothesis is testable computationally before it's tested experimentally.</strong>
+Overlaying anti-defense fitness landscapes against PCD-trigger fitness landscapes (as in Experiment 1,
+gap #2) is fundamentally a statistical/genomic data-integration problem &mdash; the kind of cross-screen
+analysis I'd want to build reusable infrastructure for.</li>
+<li><strong>Transcript-level anti-defense (the cas12 mRNA decay mechanism) opens a new data modality.</strong>
+If this generalizes, the lab will need ribosome profiling and 5′P-end RNA-seq analysis pipelines layered
+on top of their existing screen infrastructure &mdash; exactly the kind of multi-omic integration I want
+to be building.</li>
+</ul>
+
+<h2>Concrete Contributions</h2>
+<ul class="contrib-list">
+<li>Build and maintain AG screen analysis pipelines (edgeR/MAGeCK-style fitness scoring) that scale across
+the lab's growing wild-strain panel, with automated QC for library representation and replicate
+correlation.</li>
+<li>Develop cross-screen integration tools to overlay phage-dependent anti-defense and phage-independent
+PCD fitness landscapes per AG &mdash; directly operationalizing the lose-lose bind hypothesis as a
+testable statistical model.</li>
+<li>Stand up ribosome profiling / 5′P-end RNA-seq analysis (Ribo-seq QC, stall-site calling, decay
+intermediate mapping) to follow up on the cas12 mRNA decay mechanism and test whether it generalizes
+across the Acr-encoding wild-strain panel.</li>
+<li>Support AP-MS data analysis for identifying host targets of broad-spectrum anti-defense AGs, including
+interactome comparison across strains to distinguish shared-hub vs. modular mechanisms.</li>
+</ul>
+
+<div class="methods-note">
+All Claude API calls used claude-opus-4-8, run on 2026-06-28. Pooled AG screen data, strain PCA, and
+volcano plot are synthetic and illustrative, generated with seeded LCG random number generation for
+reproducibility &mdash; they are not real Silas Lab data, but are structured to match the lab's actual
+screen design (phage-dependent anti-defense screens and phage-independent PCD screens across wild
+bacterial strain panels).
+</div>
+
+</body>
+</html>
