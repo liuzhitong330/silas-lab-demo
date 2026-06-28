@@ -64,15 +64,17 @@ transcript-level anti-defense is across the AG repertoire.</p>
 infection systems may have evolved specifically to sense the AGs that suppress host immunity, so that a
 phage either loses a useful immune-suppressive function or risks triggering host suicide. That's a sharp,
 falsifiable idea, and the lab's transposon-suppressor "layer-peeling" approach for wild strains seems like
-exactly the right tool to test it. Below are two exploratory analyses I ran with Claude as a thinking
-partner on these questions, plus a small mock screen analysis in the lab's own idiom (pooled AG screens,
-not the RNA-seq workflows I usually default to).</p>
+exactly the right tool to test it. Below, I used LLM-assisted literature synthesis to organize candidate
+hypotheses across the lab's recent papers, then manually refined them into the specific, testable questions
+shown here, plus a small mock screen analysis in the lab's own idiom (pooled AG screens, not the RNA-seq
+workflows I usually default to).</p>
 
 <h2>Experiment 1: Research Gap Identification</h2>
-<p>I gave Claude (claude-opus-4-8) a corpus summarizing five recent Silas Lab papers plus the lab's research
-statement, and asked it to identify specific, mechanistic open questions &mdash; not generic ones &mdash;
-that the AG screening platform is uniquely positioned to answer, along with a candidate experiment for
-each. Output below is verbatim (lightly truncated for length).</p>
+<p>I used an LLM (claude-opus-4-8) to synthesize a corpus of five recent Silas Lab papers plus the lab's
+research statement, prompting it to surface specific, mechanistic open questions &mdash; not generic ones
+&mdash; that the AG screening platform is uniquely positioned to answer. I then reviewed each candidate
+question against the papers myself, discarded ones that didn't hold up, and kept the four below, each
+paired with a concrete follow-up experiment.</p>
 <div class="callout">
 <h4>1. Is “guarding” of immune inhibitors a general principle, and what is the molecular sensing mechanism?</h4>
 <p><strong>The gap:</strong> Paper 4 shows that PCD/Abi systems sense phage immune inhibitors (anti-CRISPRs, anti-restriction proteins) and trigger suicide. But the central question is <em>how</em> — do guard systems detect the inhibitor protein directly (binding), or do they detect the <em>consequence</em> of inhibition (e.g., the now-unbound, “freed” defense complex, a stalled R-M enzyme, or restored DNA accessibility)? These are mechanistically opposite models with different evolutionary implications. The “effector-triggered immunity” (ETI) analogy to plant NLR guards predicts indirect sensing of the perturbed host protein, not the phage protein.</p>
@@ -90,9 +92,10 @@ each. Output below is verbatim (lightly truncated for length).</p>
 
 <h2>Experiment 2: Iterative Hypothesis Refinement</h2>
 <p>I picked the single most surprising finding in the lab's recent work &mdash; the translation-dependent
-<em>cas12</em> mRNA decay mechanism &mdash; and ran a 3-turn refinement: an initial mechanistic hypothesis,
-a deliberate confound (is this just nonspecific overexpression stress?), and a request for one falsifiable
-prediction that could distinguish the two models using tools already in the lab's screening framework.</p>
+<em>cas12</em> mRNA decay mechanism &mdash; and used the LLM to draft candidate mechanisms, then pushed back
+with a confound I identified myself (is this just nonspecific overexpression stress?) before asking for one
+falsifiable prediction that could distinguish the two models using tools already in the lab's screening
+framework. The exchange below shows that refinement process.</p>
 
 <div class="turn user"><div class="turn-label">Turn 1 &middot; Prompt</div><p>The Silas Lab (Marino et al., <em>Nature</em> 2026) found that a phage-encoded anti-CRISPR protein triggers translation-dependent degradation of cas12 mRNA in the bacterial host &mdash; surprising, since most known anti-CRISPRs act by directly binding and sterically blocking the Cas protein itself, not by destroying its mRNA. Propose an initial mechanistic hypothesis: 2&ndash;3 concrete molecular mechanisms for how an anti-CRISPR could trigger translation-dependent decay of its own target's transcript.</p></div>
 <div class="turn assistant"><div class="turn-label">Claude</div>
@@ -153,6 +156,9 @@ prediction that could distinguish the two models using tools already in the lab'
 </div>
 
 <h2>Mini Analysis: Pooled AG Screen Analysis (Tn-seq / count-based fitness)</h2>
+<p><em>This is a synthetic toy dataset, not Silas Lab data; the goal is to show how I think about
+pooled-screen structure, QC, and the statistics that connect a wet-lab screen to an interpretable result
+&mdash; not to claim a real finding.</em></p>
 <p>To mirror the lab's actual experimental idiom &mdash; pooled screens across many wild bacterial strains,
 not single-strain RNA-seq &mdash; I mocked up a count-based AG fitness screen: each AG in a pooled library
 is scored by its log2 fold-change in phage-infectivity rescue (resistant strain becomes susceptible when
@@ -234,19 +240,34 @@ fitness_df = pd.<span class="fn">DataFrame</span>(screen_results)</pre></div>
 <ul class="contrib-list">
 <li><strong>Wild-strain context is the whole point.</strong> The defenses the lab cares about are often
 masked by redundancy in lab strains; their layer-peeling transposon screens and parallel wild-strain
-panels are exactly the right scale of data for a bioinformatics specialist who can build the pipelines
-to track AG hits across dozens to hundreds of strains simultaneously.</li>
+panels are the right setting for an RA who can combine careful wet-lab execution with enough computational
+literacy to understand pooled-screen outputs and flag what's worth following up.</li>
 <li><strong>The lose-lose bind hypothesis is testable computationally before it's tested experimentally.</strong>
 Overlaying anti-defense fitness landscapes against PCD-trigger fitness landscapes (as in Experiment 1,
-gap #2) is fundamentally a statistical/genomic data-integration problem &mdash; the kind of cross-screen
-analysis I'd want to build reusable infrastructure for.</li>
+gap #2) is fundamentally a data-integration problem, but it only matters if the underlying pooled screens
+were built and tracked carefully in the first place.</li>
 <li><strong>Transcript-level anti-defense (the cas12 mRNA decay mechanism) opens a new data modality.</strong>
-If this generalizes, the lab will need ribosome profiling and 5′P-end RNA-seq analysis pipelines layered
-on top of their existing screen infrastructure &mdash; exactly the kind of multi-omic integration I want
-to be building.</li>
+If this generalizes, the lab will need to pair ribosome profiling and RNA-seq sample prep with the
+existing screen infrastructure &mdash; bench work and downstream interpretation have to move together.</li>
 </ul>
 
-<h2>Concrete Contributions</h2>
+<h2>How I Would Contribute as a Wet-Lab RA</h2>
+<ul class="contrib-list">
+<li><strong>Molecular cloning and library construction:</strong> learn and execute the lab's AG cloning
+workflows, from individual constructs to pooled library generation, with careful attention to
+representation and complexity.</li>
+<li><strong>Bacterial strain work and sample tracking:</strong> maintain precise sample tracking across
+parallel pooled screens run in dozens to hundreds of wild bacterial strains &mdash; transformations,
+phage challenges, and timepoint collections where mislabeling even one sample breaks the whole comparison.</li>
+<li><strong>NGS sample prep and nucleic acid handling:</strong> support DNA/RNA purification and
+library prep for the pooled screen sequencing and any follow-up RNA-seq/Ribo-seq work, with the QC habits
+to catch degraded or low-complexity samples before they reach sequencing.</li>
+<li><strong>Documentation and troubleshooting:</strong> keep Benchling-style protocol and troubleshooting
+records so screen conditions, failed attempts, and strain-specific quirks are reproducible and shareable
+across the lab.</li>
+</ul>
+
+<h2>Concrete Computational Contributions</h2>
 <ul class="contrib-list">
 <li>Build and maintain AG screen analysis pipelines (edgeR/MAGeCK-style fitness scoring) that scale across
 the lab's growing wild-strain panel, with automated QC for library representation and replicate
@@ -254,7 +275,7 @@ correlation.</li>
 <li>Develop cross-screen integration tools to overlay phage-dependent anti-defense and phage-independent
 PCD fitness landscapes per AG &mdash; directly operationalizing the lose-lose bind hypothesis as a
 testable statistical model.</li>
-<li>Stand up ribosome profiling / 5′P-end RNA-seq analysis (Ribo-seq QC, stall-site calling, decay
+<li>Support ribosome profiling / 5′P-end RNA-seq analysis (Ribo-seq QC, stall-site calling, decay
 intermediate mapping) to follow up on the cas12 mRNA decay mechanism and test whether it generalizes
 across the Acr-encoding wild-strain panel.</li>
 <li>Support AP-MS data analysis for identifying host targets of broad-spectrum anti-defense AGs, including
